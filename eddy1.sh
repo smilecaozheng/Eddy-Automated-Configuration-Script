@@ -65,8 +65,7 @@ fi
 SELECTED_DIR="${SUBDIRS[$((choice - 1))]}"
 
 # 设置要执行的脚本路径
-SCRIPT_PATH="$SELECTED_DIR/eddy.sh
-"
+SCRIPT_PATH="$SELECTED_DIR/eddy.sh"
 
 # 检查脚本是否存在
 if [ ! -f "$SCRIPT_PATH" ]; then
