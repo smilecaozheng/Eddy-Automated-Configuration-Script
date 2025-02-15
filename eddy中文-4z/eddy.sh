@@ -15,12 +15,12 @@ FILE="$HOME/klipper/klippy/extras/ldc1612.py"
 
 # 定义要添加到 printer.cfg 的内容
 PRINTER_CFG_CONTENT="[include eddypz.cfg] #eddy配置\n"
+PRINTER_CFG_CONTEN="[probe_eddy_current fly_eddy_probe]\nz_offset: 2.0\n"
 
 # 定义要添加到 eddypz.cfg 的内容，分开处理
 PROBE_EDDY_CURRENT=$(cat <<EOF
 [probe_eddy_current fly_eddy_probe]
 sensor_type: ldc1612
-z_offset: 2.0
 i2c_address: 43
 i2c_mcu: SHT36
 i2c_bus: i2c1e
@@ -270,16 +270,26 @@ sed -i 's/\r$//' "$PRINTER_CFG"
 
 # 定义要查找的内容，使用正则表达式允许前后有空白字符，并忽略大小写
 # 修正了 $$ 为单个 $，并转义了特殊字符
-SEARCH_PATTERN='^\s*$$include\s*eddypz\.cfg$$\s*#\s*eddyconfig\s*$'
+SEARCH_PATTERN='^\s*$$include\s+eddypz\.cfg$$\s*#\s*eddy配置\s*$$'
+SEARCH_PATTER='^\s*$$probe_eddy_current\s+fly_eddy_probe$$\s*$'
 
 # 检查是否已经包含 [include eddypz.cfg] #eddyconfig
 if grep -Eiq "$SEARCH_PATTERN" "$PRINTER_CFG"; then
-    echo "[include eddypz.cfg] #eddyconfig 已存在于 $PRINTER_CFG 中，跳过添加。"
+    echo "[include eddypz.cfg] #eddy配置 已存在于 $PRINTER_CFG 中，跳过添加。"
 else
     # 在文件开头插入新行
     sed -i "1i$PRINTER_CFG_CONTENT" "$PRINTER_CFG"
-    echo "已添加 [include eddypz.cfg] #eddyconfig 到 $PRINTER_CFG 的第一行"
+    echo "已添加 [include eddypz.cfg] #eddy配置 到 $PRINTER_CFG 的第一行"
 fi
+
+if grep -Eiq "$SEARCH_PATTER" "$PRINTER_CFG"; then
+    echo "[probe_eddy_current fly_eddy_probe] 已存在于 $PRINTER_CFG 中，跳过添加。"
+else
+    # 在文件开头插入新行
+    sed -i "3i$PRINTER_CFG_CONTEN" "$PRINTER_CFG"
+    echo "已添加 [probe_eddy_current fly_eddy_probe] 到 $PRINTER_CFG 的第三行"
+fi
+PRINTER_CFG_CONTEN
 
 echo "所有操作已完成."
 # 在原脚本的最后一行添加
