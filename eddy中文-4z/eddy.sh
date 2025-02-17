@@ -205,7 +205,10 @@ gcode:
     SET_GCODE_VARIABLE MACRO=SET_GCODE_OFFSET VARIABLE=runtime_offset VALUE={ svv.nvm_offset|default(0) }
     SET_GCODE_VARIABLE MACRO=SET_GCODE_OFFSET VARIABLE=restored VALUE=True
   {% endif %}
+EOF
+)
 
+GCODE_MACRO_G28=$(cat <<EOF
 [gcode_macro G28]
 rename_existing: G28.1
 gcode:
@@ -214,20 +217,28 @@ gcode:
     PROBE
     SET_Z_FROM_PROBE
   {% endif %}
+EOF
+)
 
+GCODE_MACRO_SET_Z_FROM_PROBE=$(cat <<EOF
 [gcode_macro SET_Z_FROM_PROBE]
 gcode:
     {% set cf = printer.configfile.settings %}
     SET_GCODE_OFFSET_ORIG Z={printer.probe.last_z_result - cf['probe_eddy_current fly_eddy_probe'].z_offset + printer["gcode_macro SET_GCODE_OFFSET"].runtime_offset}
     G90
     G1 Z{cf.safe_z_home.z_hop}
+EOF
+)
 
-
+GCODE_MACRO_Z_OFFSET_APPLY_PROBE=$(cat <<EOF
 [gcode_macro Z_OFFSET_APPLY_PROBE]
 rename_existing: Z_OFFSET_APPLY_PROBE_ORIG
 gcode:
   SAVE_VARIABLE VARIABLE=nvm_offset VALUE={ printer["gcode_macro SET_GCODE_OFFSET"].runtime_offset }
+EOF
+)
 
+GCODE_MACRO_SET_GCODE_OFFSET=$(cat <<EOF
 [gcode_macro SET_GCODE_OFFSET]
 rename_existing: SET_GCODE_OFFSET_ORIG
 variable_restored: False  # Mark whether the var has been restored from NVM
@@ -309,6 +320,10 @@ add_config "gcode_macro_BED_MESH_CALIBRATE" "$GCODE_MACRO_BED_MESH_CALIBRATE"
 add_config "gcode_macro_QUAD_GANTRY_LEVEL" "$GCODE_MACRO_QUAD_GANTRY_LEVEL"
 add_config "force_move" "$FORCE_MOVE"
 add_config "delaeyed_gcode_RESTORE_PROBE_OFFSE" "$DELAEYED_GCODE_RESTORE_PROBE_OFFSE"
+add_config "gcode_macro_G28" "$GCODE_MACRO_G28"
+add_config "gcode_macro_SET_Z_FROM_PROBE" "$GCODE_MACRO_SET_Z_FROM_PROBE"
+add_config "gcode_macro_Z_OFFSET_APPLY_PROBE" "$GCODE_MACRO_Z_OFFSET_APPLY_PROBE"
+add_config "gcode_macro_SET_GCODE_OFFSET" "$GCODE_MACRO_SET_GCODE_OFFSET"
 echo "eddypz.cfg 文件已更新。"
 
 # ================================
