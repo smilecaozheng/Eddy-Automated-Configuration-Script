@@ -17,8 +17,8 @@ EDDPZ_CFG="$HOME/printer_data/config/eddypz.cfg"
 FILE="$HOME/klipper/klippy/extras/ldc1612.py"
 
 # Define content to add to printer.cfg
-PRINTER_CFG_CONTENT="[include eddypz.cfg] #eddy_config\n"
-PRINTER_CFG_CONTEN="[probe_eddy_current fly_eddy_probe]\nz_offset: 2.0\n"
+PRINTER_CFG_CONTENT="[include eddypz.cfg]"
+PRINTER_CFG_CONTEN="[probe_eddy_current fly_eddy_probe]\nz_offset: 1.0"
 
 # Define content to add to eddypz.cfg, separated for processing
 PROBE_EDDY_CURRENT=$(cat <<EOF
@@ -197,6 +197,37 @@ gcode:
 EOF
 )
 
+
+DELAEYED_GCODE_RESTORE_PROBE_OFFSET=$(cat <<EOF
+[delayed_gcode RESTORE_PROBE_OFFSET]
+initial_duration: 1.
+gcode:
+  {% set svv = printer.save_variables.variables %}
+  {% if not printer["gcode_macro SET_GCODE_OFFSET"].restored %}
+    SET_GCODE_VARIABLE MACRO=SET_GCODE_OFFSET VARIABLE=runtime_offset VALUE={ svv.nvm_offset|default(0) }
+    SET_GCODE_VARIABLE MACRO=SET_GCODE_OFFSET VARIABLE=restored VALUE=True
+  {% endif %}
+EOF
+)
+
+GCODE_MACRO_G28=$(cat <<EOF
+[gcode_macro G28]
+rename_existing: G28.1
+g…ms.split() %}
+    {% for i in range(paramList|length) %}
+      {% if paramList[i]=="Z=0" %}
+        {% set temp=paramList.pop(i) %}
+        {% set temp="Z_ADJUST=" + (-printer["gcode_macro SET_GCODE_OFFSET"].runtime_offset)|string %}
+        {% if paramList.append(temp) %}{% endif %}
+      {% endif %}
+    {% endfor %}
+    {% set rawparams=paramList|join(' ') %}
+    SET_GCODE_VARIABLE MACRO=SET_GCODE_OFFSET VARIABLE=runtime_offset VALUE=0
+  {% endif %}
+  SET_GCODE_OFFSET_ORIG { rawparams }
+EOF
+)
+
 # ================================
 # Function 1: Check if eddypz.cfg exists, delete it if it does,
 #            then recreate it and add configuration content.
@@ -254,6 +285,11 @@ add_config "gcode_macro_CANCEL_TEMP_COMPENSATION" "$GCODE_MACRO_CANCEL_TEMP_COMP
 add_config "gcode_macro_BED_MESH_CALIBRATE" "$GCODE_MACRO_BED_MESH_CALIBRATE"
 add_config "gcode_macro_QUAD_GANTRY_LEVEL" "$GCODE_MACRO_QUAD_GANTRY_LEVEL"
 add_config "force_move" "$FORCE_MOVE"
+add_config "delayed_gcode_RESTORE_PROBE_OFFSET" "$DELAEYED_GCODE_RESTORE_PROBE_OFFSET"
+add_config "gcode_macro_G28" "$GCODE_MACRO_G28"
+add_config "gcode_macro_SET_Z_FROM_PROBE" "$GCODE_MACRO_SET_Z_FROM_PROBE"
+add_config "gcode_macro_Z_OFFSET_APPLY_PROBE" "$GCODE_MACRO_Z_OFFSET_APPLY_PROBE"
+add_config "gcode_macro_SET_GCODE_OFFSET" "$GCODE_MACRO_SET_GCODE_OFFSET
 echo "eddypz.cfg file has been updated."
 
 # ================================

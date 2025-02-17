@@ -143,69 +143,66 @@ case "$choice" in
 esac
 
 echo "操作已完成./Operation completed."
-
-
-# 检查指定的配置文件是否存在
-if [ ! -f "$CONFIG_DIL" ]; then
-    echo "文件不存在: $CONFIG_DIL"
-    exit 1
+ 
+CONFIG_DIR="$HOME/printer_data/config"
+CONFIG_FILE="$CONFIG_DIR/printer.cfg"
+TMP_FILE="$CONFIG_FILE.tmp"
+ 
+awk -v found=0 '
+BEGIN { in_block = 0; expect_next = "" }
+ 
+# 检测完整配置块起始 
+/^\[include eddypz.cfg\]/ &&!found { 
+    in_block = 1 
+    expect_next = "probe"
+    block_buffer = $0 "\n" 
+    next 
+}
+ 
+# 处理预期中的下一行 
+in_block && expect_next == "probe" {
+    if (/^\[probe_eddy_current fly_eddy_probe\]/) {
+        block_buffer = block_buffer $0 "\n"
+        expect_next = "z_offset"
+    } else {
+        # 非完整区块则回退 
+        printf "%s", block_buffer 
+        in_block = 0 
+        print $0 
+    }
+    next 
+}
+ 
+in_block && expect_next == "z_offset" {
+    if (/^z_offset:[[:space:]]*2\.0/) {
+        block_buffer = block_buffer $0 "\n"
+        found = 1  # 标记已找到有效配置 
+        printf "%s", block_buffer 
+    } else {
+        printf "%s", block_buffer 
+        print $0 
+    }
+    in_block = 0 
+    next 
+}
+ 
+# 跳过重复的完整配置块 
+/^\[include eddypz.cfg\]/ && found { 
+    skip = 1 
+    next 
+}
+skip && /^\[probe_eddy_current fly_eddy_probe\]/ { next }
+skip && /^z_offset:[[:space:]]*2\.0/ { skip = 0; next }
+skip { skip = 0; print $0 }
+ 
+# 常规输出 
+{ print }
+' "$CONFIG_FILE" > "$TMP_FILE"
+ 
+if ! diff -q "$CONFIG_FILE" "$TMP_FILE" >/dev/null; then 
+    mv "$TMP_FILE" "$CONFIG_FILE"
+    echo "配置文件已更新"
+else 
+    rm "$TMP_FILE"
+    echo "未发现重复配置"
 fi
-
-echo "处理文件: $CONFIG_DIL"
-
-# 使用临时文件存储处理后的内容
-temp_file=$(mktemp)
-
-# 标志变量，用于跟踪是否已经保留了一个 '[include eddypz.cfg] #eddy配置'
-included=0
-
-# 定义需要匹配的包含指令（中文和英文）
-include_cn="[include eddypz.cfg] #eddy配置\n"
-include_en="[include eddypz.cfg] #eddy_config\n"
-include_nn="[probe_eddy_current fly_eddy_probe]\nz_offset: 2.0\n"
-
-# 逐行读取配置文件
-while IFS= read -r line; do
-    if [[ "$line" == "$include_cn" || "$line" == "$include_en" || "$line" == "$include_nn" ]]; then
-        if [ "$included" -eq 0 ]; then
-            echo "$line" >> "$temp_file"
-            included=0
-        fi
-        # 如果已经包含过一次，则跳过后续的包含行
-    else
-# 如果前一行是包含行且当前行非空，则删除前一个换行符
-        if [ "$included" -eq 1 ]; then
-            # 检查上一行是否以包含行结尾
-            if [ -s "$temp_file" ]; then
-                # 获取临时文件的最后一行
-                last_line=$(tail -n 1 "$temp_file")
-                # 如果最后一行是包含行，则不添加新的换行符
-    if [[ "$line" == "$include_cn" || "$line" == "$include_en" || "$line" == "$include_nn" ]]; then
-                    echo -n "$line" >> "$temp_file"
-                else
-                    echo "$line" >> "$temp_file"
-                fi
-            else
-                echo "$line" >> "$temp_file"
-            fi
-        else
-            echo "$line" >> "$temp_file"
-        fi
-        included=1
-     fi
-done < "$CONFIG_DIL"
-
-# 处理文件末尾可能缺少换行符的情况
-if [ -s "$temp_file" ]; then
-    last_char=$(tail -c 1 "$temp_file")
-    if [ "$last_char" != $'\n' ]; then
-        echo "" >> "$temp_file"
-    fi
-fi
-
-# 将临时文件内容覆盖原文件
-mv "$temp_file" "$CONFIG_DIL"
-
-echo "已更新/Updated: $CONFIG_DIL"
-
-echo "配置文件处理完成。/Configuration file processing completed."  
