@@ -18,7 +18,7 @@ FILE="$HOME/klipper/klippy/extras/ldc1612.py"
 
 # 定义要添加到 printer.cfg 的内容
 PRINTER_CFG_CONTENT="[include eddypz.cfg]"
-PRINTER_CFG_CONTEN="[probe_eddy_current fly_eddy_probe]\nz_offset: 1.6"
+PRINTER_CFG_CONTEN="[probe_eddy_current fly_eddy_probe]\nz_offset: 2.0"
 
 # 定义要添加到 eddypz.cfg 的内容，分开处理
 PROBE_EDDY_CURRENT=$(cat <<EOF

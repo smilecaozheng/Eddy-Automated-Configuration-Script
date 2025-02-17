@@ -174,7 +174,7 @@ in_block && expect_next == "probe" {
 }
  
 in_block && expect_next == "z_offset" {
-    if (/^z_offset:[[:space:]]*1\.6/) {
+    if (/^z_offset:[[:space:]]*2\.0/) {
         block_buffer = block_buffer $0 "\n"
         found = 1  # 标记已找到有效配置 
         printf "%s", block_buffer 
@@ -192,7 +192,7 @@ in_block && expect_next == "z_offset" {
     next 
 }
 skip && /^\[probe_eddy_current fly_eddy_probe\]/ { next }
-skip && /^z_offset:[[:space:]]*1\.6/ { skip = 0; next }
+skip && /^z_offset:[[:space:]]*2\.0/ { skip = 0; next }
 skip { skip = 0; print $0 }
  
 # 常规输出 
