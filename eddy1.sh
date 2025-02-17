@@ -174,7 +174,7 @@ in_block && expect_next == "probe" {
 }
  
 in_block && expect_next == "z_offset" {
-    if (/^z_offset:[[:space:]]*2\.0/) {
+    if (/^z_offset:[[:space:]]*1\.0/) {
         block_buffer = block_buffer $0 "\n"
         found = 1  # 标记已找到有效配置 
         printf "%s", block_buffer 
