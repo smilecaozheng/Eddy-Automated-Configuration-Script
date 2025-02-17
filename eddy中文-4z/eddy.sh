@@ -319,7 +319,7 @@ add_config "gcode_macro_CANCEL_TEMP_COMPENSATION" "$GCODE_MACRO_CANCEL_TEMP_COMP
 add_config "gcode_macro_BED_MESH_CALIBRATE" "$GCODE_MACRO_BED_MESH_CALIBRATE"
 add_config "gcode_macro_QUAD_GANTRY_LEVEL" "$GCODE_MACRO_QUAD_GANTRY_LEVEL"
 add_config "force_move" "$FORCE_MOVE"
-add_config "delaeyed_gcode_RESTORE_PROBE_OFFSE" "$DELAEYED_GCODE_RESTORE_PROBE_OFFSE"
+add_config "delayed_gcode_RESTORE_PROBE_OFFSET" "$DELAYED_GCODE_RESTORE_PROBE_OFFSET"
 add_config "gcode_macro_G28" "$GCODE_MACRO_G28"
 add_config "gcode_macro_SET_Z_FROM_PROBE" "$GCODE_MACRO_SET_Z_FROM_PROBE"
 add_config "gcode_macro_Z_OFFSET_APPLY_PROBE" "$GCODE_MACRO_Z_OFFSET_APPLY_PROBE"
