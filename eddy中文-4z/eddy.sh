@@ -289,7 +289,6 @@ else
     sed -i "3i$PRINTER_CFG_CONTEN" "$PRINTER_CFG"
     echo "已添加 [probe_eddy_current fly_eddy_probe] 到 $PRINTER_CFG 的第三行"
 fi
-PRINTER_CFG_CONTEN
 
 echo "所有操作已完成."
 # 在原脚本的最后一行添加
