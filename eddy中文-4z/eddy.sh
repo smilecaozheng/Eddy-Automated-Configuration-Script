@@ -169,7 +169,7 @@ gcode:
     # ========== 主调平流程 ==========
     {% if not printer.quad_gantry_level.applied %}
         # 首次快速粗调 
-        _QUAD_GANTRY_LEVEL 
+        _QUAD_GANTRY_LEVEL horizontal_move_z=10 retry_tolerance=1 
         G0 Z10 F6000                     # 使用标准 G-code 命令替代 HORIZONTAL_MOVE_Z
         # 设置重试公差和速度
         # 注意：具体参数取决于 _QUAD_GANTRY_LEVEL 宏的实现
@@ -178,7 +178,7 @@ gcode:
     {% endif %}
     
     # 精确二次调平 
-     _QUAD_GANTRY_LEVEL horizontal_move_z=2 METHOD=rapid_scan ADAPTIVE=1
+     _QUAD_GANTRY_LEVEL horizontal_move_z=2 retry_tolerance=0.005 retries=20 METHOD=rapid_scan ADAPTIVE=1
         G0 Z10 F6000                     # 使用标准 G-code 命令替代 HORIZONTAL_MOVE_Z
         # 设置自动补偿算法、最大调整次数和速度
         # 例如，如果 _QUAD_GANTRY_LEVEL 支持 METHOD 和 MAX_ADJUST 参数：
@@ -193,6 +193,62 @@ gcode:
     # ========== 状态恢复 ==========
     RESTORE_GCODE_STATE NAME=STATE_QGL 
     M400                
+EOF
+)
+
+DELAEYED_GCODE_RESTORE_PROBE_OFFSET=$(cat <<EOF
+[delayed_gcode RESTORE_PROBE_OFFSET]
+initial_duration: 1.
+gcode:
+  {% set svv = printer.save_variables.variables %}
+  {% if not printer["gcode_macro SET_GCODE_OFFSET"].restored %}
+    SET_GCODE_VARIABLE MACRO=SET_GCODE_OFFSET VARIABLE=runtime_offset VALUE={ svv.nvm_offset|default(0) }
+    SET_GCODE_VARIABLE MACRO=SET_GCODE_OFFSET VARIABLE=restored VALUE=True
+  {% endif %}
+
+[gcode_macro G28]
+rename_existing: G28.1
+gcode:
+  G28.1 {rawparams}
+  {% if not rawparams or (rawparams and 'Z' in rawparams) %}
+    PROBE
+    SET_Z_FROM_PROBE
+  {% endif %}
+
+[gcode_macro SET_Z_FROM_PROBE]
+gcode:
+    {% set cf = printer.configfile.settings %}
+    SET_GCODE_OFFSET_ORIG Z={printer.probe.last_z_result - cf['probe_eddy_current fly_eddy_probe'].z_offset + printer["gcode_macro SET_GCODE_OFFSET"].runtime_offset}
+    G90
+    G1 Z{cf.safe_z_home.z_hop}
+
+
+[gcode_macro Z_OFFSET_APPLY_PROBE]
+rename_existing: Z_OFFSET_APPLY_PROBE_ORIG
+gcode:
+  SAVE_VARIABLE VARIABLE=nvm_offset VALUE={ printer["gcode_macro SET_GCODE_OFFSET"].runtime_offset }
+
+[gcode_macro SET_GCODE_OFFSET]
+rename_existing: SET_GCODE_OFFSET_ORIG
+variable_restored: False  # Mark whether the var has been restored from NVM
+variable_runtime_offset: 0
+gcode:
+  {% if params.Z_ADJUST %}
+    SET_GCODE_VARIABLE MACRO=SET_GCODE_OFFSET VARIABLE=runtime_offset VALUE={ printer["gcode_macro SET_GCODE_OFFSET"].runtime_offset + params.Z_ADJUST|float }
+  {% endif %}
+  {% if params.Z %} 
+    {% set paramList = rawparams.split() %}
+    {% for i in range(paramList|length) %}
+      {% if paramList[i]=="Z=0" %}
+        {% set temp=paramList.pop(i) %}
+        {% set temp="Z_ADJUST=" + (-printer["gcode_macro SET_GCODE_OFFSET"].runtime_offset)|string %}
+        {% if paramList.append(temp) %}{% endif %}
+      {% endif %}
+    {% endfor %}
+    {% set rawparams=paramList|join(' ') %}
+    SET_GCODE_VARIABLE MACRO=SET_GCODE_OFFSET VARIABLE=runtime_offset VALUE=0
+  {% endif %}
+  SET_GCODE_OFFSET_ORIG { rawparams }
 EOF
 )
 
@@ -252,6 +308,7 @@ add_config "gcode_macro_CANCEL_TEMP_COMPENSATION" "$GCODE_MACRO_CANCEL_TEMP_COMP
 add_config "gcode_macro_BED_MESH_CALIBRATE" "$GCODE_MACRO_BED_MESH_CALIBRATE"
 add_config "gcode_macro_QUAD_GANTRY_LEVEL" "$GCODE_MACRO_QUAD_GANTRY_LEVEL"
 add_config "force_move" "$FORCE_MOVE"
+add_config "delaeyed_gcode_RESTORE_PROBE_OFFSE" "$DELAEYED_GCODE_RESTORE_PROBE_OFFSE"
 echo "eddypz.cfg 文件已更新。"
 
 # ================================
@@ -270,7 +327,7 @@ sed -i 's/\r$//' "$PRINTER_CFG"
 
 # 定义要查找的内容，使用正则表达式允许前后有空白字符，并忽略大小写
 # 修正了 $$ 为单个 $，并转义了特殊字符
-SEARCH_PATTERN='^\s*$$include\s+eddypz\.cfg$$\s*#\s*eddy配置\s*$$'
+SEARCH_PATTERN='^\s*$$include\s+eddypz\.cfg$$\s*#\s*eddy配置\s*$'
 SEARCH_PATTER='^\s*$$probe_eddy_current\s+fly_eddy_probe$$\s*$'
 
 # 检查是否已经包含 [include eddypz.cfg] #eddyconfig

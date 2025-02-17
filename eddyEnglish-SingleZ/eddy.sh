@@ -17,12 +17,12 @@ FILE="$HOME/klipper/klippy/extras/ldc1612.py"
 
 # Define content to add to printer.cfg
 PRINTER_CFG_CONTENT="[include eddypz.cfg] #eddy configuration\n"
+PRINTER_CFG_CONTEN="[probe_eddy_current fly_eddy_probe]\nz_offset: 2.0\n"
 
 # Define content to add to eddypz.cfg, handled separately
 PROBE_EDDY_CURRENT=$(cat <<EOF
 [probe_eddy_current fly_eddy_probe]
 sensor_type: ldc1612
-z_offset: 2.0
 i2c_address: 43
 i2c_mcu: SHT36
 i2c_bus: i2c1e
@@ -230,6 +230,7 @@ sed -i 's/\r$//' "$PRINTER_CFG"
 
 # Define the search pattern with regex to allow whitespace around and ignore case
 SEARCH_PATTERN='^\s*$$include\s*eddypz\.cfg$$\s*#\s*eddy\s*configuration\s*$'
+SEARCH_PATTER='^\s*$$probe_eddy_current\s+fly_eddy_probe$$\s*$'
 
 # Check if "[include eddypz.cfg] #eddy configuration" already exists
 if grep -Eiq "$SEARCH_PATTERN" "$PRINTER_CFG"; then
@@ -238,6 +239,14 @@ else
     # Insert the new line at the beginning of the file
     sed -i "1i$PRINTER_CFG_CONTENT" "$PRINTER_CFG"
     echo "Added '[include eddypz.cfg] #eddy configuration' to the first line of $PRINTER_CFG"
+fi
+
+if grep -Eiq "$SEARCH_PATTER" "$PRINTER_CFG"; then
+    echo "[probe_eddy_current fly_eddy_probe] already exists in $PRINTER_CFG, skipping addition."
+else
+    # Insert a new line at the beginning of the file.
+    sed -i "3i$PRINTER_CFG_CONTEN" "$PRINTER_CFG"
+    echo "Already added [probe_eddy_current fly_eddy_probe] to... $PRINTER_CFG "
 fi
 
 echo "All operations completed."

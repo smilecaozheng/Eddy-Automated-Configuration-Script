@@ -160,12 +160,13 @@ temp_file=$(mktemp)
 included=0
 
 # 定义需要匹配的包含指令（中文和英文）
-include_cn="[include eddypz.cfg] #eddy配置"
-include_en="[include eddypz.cfg] #eddy_config"
+include_cn="[include eddypz.cfg] #eddy配置\n"
+include_en="[include eddypz.cfg] #eddy_config\n"
+include_nn="[probe_eddy_current fly_eddy_probe]\nz_offset: 2.0\n"
 
 # 逐行读取配置文件
 while IFS= read -r line; do
-    if [[ "$line" == "$include_cn" || "$line" == "$include_en" ]]; then
+    if [[ "$line" == "$include_cn" || "$line" == "$include_en" || "$line" == "$include_nn" ]]; then
         if [ "$included" -eq 0 ]; then
             echo "$line" >> "$temp_file"
             included=0
@@ -179,7 +180,7 @@ while IFS= read -r line; do
                 # 获取临时文件的最后一行
                 last_line=$(tail -n 1 "$temp_file")
                 # 如果最后一行是包含行，则不添加新的换行符
-    if [[ "$line" == "$include_cn" || "$line" == "$include_en" ]]; then
+    if [[ "$line" == "$include_cn" || "$line" == "$include_en" || "$line" == "$include_nn" ]]; then
                     echo -n "$line" >> "$temp_file"
                 else
                     echo "$line" >> "$temp_file"
