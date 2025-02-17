@@ -192,7 +192,7 @@ in_block && expect_next == "z_offset" {
     next 
 }
 skip && /^\[probe_eddy_current fly_eddy_probe\]/ { next }
-skip && /^z_offset:[[:space:]]*2\.0/ { skip = 0; next }
+skip && /^z_offset:[[:space:]]*1\.0/ { skip = 0; next }
 skip { skip = 0; print $0 }
  
 # 常规输出 

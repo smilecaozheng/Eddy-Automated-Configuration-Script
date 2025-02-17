@@ -280,7 +280,7 @@ if grep -Eiq "$SEARCH_PATTER" "$PRINTER_CFG"; then
     echo "[probe_eddy_current fly_eddy_probe] already exists in $PRINTER_CFG, skipping addition."
 else
     # Insert a new line at the beginning of the file.
-    sed -i "3i$PRINTER_CFG_CONTEN" "$PRINTER_CFG"
+    sed -i "2i$PRINTER_CFG_CONTEN" "$PRINTER_CFG"
     echo "Already added [probe_eddy_current fly_eddy_probe] to... $PRINTER_CFG "
 fi
 

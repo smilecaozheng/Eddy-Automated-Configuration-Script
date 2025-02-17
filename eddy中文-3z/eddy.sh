@@ -307,7 +307,7 @@ if grep -Eiq "$SEARCH_PATTER" "$PRINTER_CFG"; then
     echo "[probe_eddy_current fly_eddy_probe] 已存在于 $PRINTER_CFG 中，跳过添加。"
 else
     # 在文件开头插入新行
-    sed -i "3i$PRINTER_CFG_CONTEN" "$PRINTER_CFG"
+    sed -i "2i$PRINTER_CFG_CONTEN" "$PRINTER_CFG"
     echo "已添加 [probe_eddy_current fly_eddy_probe] 到 $PRINTER_CFG 的第三行"
 fi
 
