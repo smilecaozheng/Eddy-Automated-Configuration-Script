@@ -198,35 +198,35 @@ EOF
 )
 
 
-DELAEYED_GCODE_RESTORE_PROBE_OFFSET=$(cat <<EOF
-[delayed_gcode RESTORE_PROBE_OFFSET]
-initial_duration: 1.
-gcode:
-  {% set svv = printer.save_variables.variables %}
-  {% if not printer["gcode_macro SET_GCODE_OFFSET"].restored %}
-    SET_GCODE_VARIABLE MACRO=SET_GCODE_OFFSET VARIABLE=runtime_offset VALUE={ svv.nvm_offset|default(0) }
-    SET_GCODE_VARIABLE MACRO=SET_GCODE_OFFSET VARIABLE=restored VALUE=True
-  {% endif %}
-EOF
-)
+# DELAEYED_GCODE_RESTORE_PROBE_OFFSET=$(cat <<EOF
+# [delayed_gcode RESTORE_PROBE_OFFSET]
+# initial_duration: 1.
+# gcode:
+#   {% set svv = printer.save_variables.variables %}
+#   {% if not printer["gcode_macro SET_GCODE_OFFSET"].restored %}
+#     SET_GCODE_VARIABLE MACRO=SET_GCODE_OFFSET VARIABLE=runtime_offset VALUE={ svv.nvm_offset|default(0) }
+#     SET_GCODE_VARIABLE MACRO=SET_GCODE_OFFSET VARIABLE=restored VALUE=True
+#   {% endif %}
+# EOF
+# )
 
-GCODE_MACRO_G28=$(cat <<EOF
-[gcode_macro G28]
-rename_existing: G28.1
-g…ms.split() %}
-    {% for i in range(paramList|length) %}
-      {% if paramList[i]=="Z=0" %}
-        {% set temp=paramList.pop(i) %}
-        {% set temp="Z_ADJUST=" + (-printer["gcode_macro SET_GCODE_OFFSET"].runtime_offset)|string %}
-        {% if paramList.append(temp) %}{% endif %}
-      {% endif %}
-    {% endfor %}
-    {% set rawparams=paramList|join(' ') %}
-    SET_GCODE_VARIABLE MACRO=SET_GCODE_OFFSET VARIABLE=runtime_offset VALUE=0
-  {% endif %}
-  SET_GCODE_OFFSET_ORIG { rawparams }
-EOF
-)
+# GCODE_MACRO_G28=$(cat <<EOF
+# [gcode_macro G28]
+# rename_existing: G28.1
+# g…ms.split() %}
+#     {% for i in range(paramList|length) %}
+#       {% if paramList[i]=="Z=0" %}
+#         {% set temp=paramList.pop(i) %}
+#         {% set temp="Z_ADJUST=" + (-printer["gcode_macro SET_GCODE_OFFSET"].runtime_offset)|string %}
+#         {% if paramList.append(temp) %}{% endif %}
+#       {% endif %}
+#     {% endfor %}
+#     {% set rawparams=paramList|join(' ') %}
+#     SET_GCODE_VARIABLE MACRO=SET_GCODE_OFFSET VARIABLE=runtime_offset VALUE=0
+#   {% endif %}
+#   SET_GCODE_OFFSET_ORIG { rawparams }
+# EOF
+# )
 
 # ================================
 # Function 1: Check if eddypz.cfg exists, delete it if it does,
