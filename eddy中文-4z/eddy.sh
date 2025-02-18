@@ -196,72 +196,6 @@ gcode:
 EOF
 )
 
-# DELAEYED_GCODE_RESTORE_PROBE_OFFSET=$(cat <<EOF
-# [delayed_gcode RESTORE_PROBE_OFFSET]
-# initial_duration: 1.
-# gcode:
-#   {% set svv = printer.save_variables.variables %}
-#   {% if not printer["gcode_macro SET_GCODE_OFFSET"].restored %}
-#     SET_GCODE_VARIABLE MACRO=SET_GCODE_OFFSET VARIABLE=runtime_offset VALUE={ svv.nvm_offset|default(0) }
-#     SET_GCODE_VARIABLE MACRO=SET_GCODE_OFFSET VARIABLE=restored VALUE=True
-#   {% endif %}
-# EOF
-# )
-
-# GCODE_MACRO_G28=$(cat <<EOF
-# [gcode_macro G28]
-# rename_existing: G28.1
-# gcode:
-#   G28.1 {rawparams}
-#   {% if not rawparams or (rawparams and 'Z' in rawparams) %}
-#     PROBE
-#     SET_Z_FROM_PROBE
-#   {% endif %}
-# EOF
-# )
-
-# GCODE_MACRO_SET_Z_FROM_PROBE=$(cat <<EOF
-# [gcode_macro SET_Z_FROM_PROBE]
-# gcode:
-#     {% set cf = printer.configfile.settings %}
-#     SET_GCODE_OFFSET_ORIG Z={printer.probe.last_z_result - cf['probe_eddy_current fly_eddy_probe'].z_offset + printer["gcode_macro SET_GCODE_OFFSET"].runtime_offset}
-#     G90
-#     G1 Z{cf.safe_z_home.z_hop}
-# EOF
-# )
-
-# GCODE_MACRO_Z_OFFSET_APPLY_PROBE=$(cat <<EOF
-# [gcode_macro Z_OFFSET_APPLY_PROBE]
-# rename_existing: Z_OFFSET_APPLY_PROBE_ORIG
-# gcode:
-#   SAVE_VARIABLE VARIABLE=nvm_offset VALUE={ printer["gcode_macro SET_GCODE_OFFSET"].runtime_offset }
-# EOF
-# )
-
-# GCODE_MACRO_SET_GCODE_OFFSET=$(cat <<EOF
-# [gcode_macro SET_GCODE_OFFSET]
-# rename_existing: SET_GCODE_OFFSET_ORIG
-# variable_restored: False  # Mark whether the var has been restored from NVM
-# variable_runtime_offset: 0
-# gcode:
-#   {% if params.Z_ADJUST %}
-#     SET_GCODE_VARIABLE MACRO=SET_GCODE_OFFSET VARIABLE=runtime_offset VALUE={ printer["gcode_macro SET_GCODE_OFFSET"].runtime_offset + params.Z_ADJUST|float }
-#   {% endif %}
-#   {% if params.Z %} 
-#     {% set paramList = rawparams.split() %}
-#     {% for i in range(paramList|length) %}
-#       {% if paramList[i]=="Z=0" %}
-#         {% set temp=paramList.pop(i) %}
-#         {% set temp="Z_ADJUST=" + (-printer["gcode_macro SET_GCODE_OFFSET"].runtime_offset)|string %}
-#         {% if paramList.append(temp) %}{% endif %}
-#       {% endif %}
-#     {% endfor %}
-#     {% set rawparams=paramList|join(' ') %}
-#     SET_GCODE_VARIABLE MACRO=SET_GCODE_OFFSET VARIABLE=runtime_offset VALUE=0
-#   {% endif %}
-#   SET_GCODE_OFFSET_ORIG { rawparams }
-# EOF
-# )
 
 # ================================
 # 功能 1: 检查并删除 eddypz.cfg（如果存在），然后重新创建并添加配置内容
@@ -319,11 +253,6 @@ add_config "gcode_macro_CANCEL_TEMP_COMPENSATION" "$GCODE_MACRO_CANCEL_TEMP_COMP
 add_config "gcode_macro_BED_MESH_CALIBRATE" "$GCODE_MACRO_BED_MESH_CALIBRATE"
 add_config "gcode_macro_QUAD_GANTRY_LEVEL" "$GCODE_MACRO_QUAD_GANTRY_LEVEL"
 add_config "force_move" "$FORCE_MOVE"
-add_config "delayed_gcode_RESTORE_PROBE_OFFSET" "$DELAEYED_GCODE_RESTORE_PROBE_OFFSET"
-add_config "gcode_macro_G28" "$GCODE_MACRO_G28"
-add_config "gcode_macro_SET_Z_FROM_PROBE" "$GCODE_MACRO_SET_Z_FROM_PROBE"
-add_config "gcode_macro_Z_OFFSET_APPLY_PROBE" "$GCODE_MACRO_Z_OFFSET_APPLY_PROBE"
-add_config "gcode_macro_SET_GCODE_OFFSET" "$GCODE_MACRO_SET_GCODE_OFFSET"
 echo "eddypz.cfg 文件已更新。"
 
 # ================================
