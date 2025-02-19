@@ -64,7 +64,7 @@ gcode:
     # Move print head to center of heat bed (suitable for most CoreXY models)
     G0 X{printer.toolhead.axis_maximum.x / 2} Y{printer.toolhead.axis_maximum.y / 2} F6000 
     
-    SET_KINEMATIC_POSITION X={printer.toolhead.axis_maximum.x / 2} Y={printer.toolhead.axis_maximum.y / 2} Z={printer.toolhead.axis_maximum.z}
+    SET_KINEMATIC_POSITION X={printer.toolhead.axis_maximum.x / 2} Y={printer.toolhead.axis_maximum.y / 2} Z={printer.toolhead.axis_maximum.z-10}
 
     # Execute Calibration Process 
     LDC_CALIBRATE_DRIVE_CURRENT CHIP=fly_eddy_probe 

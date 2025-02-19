@@ -65,7 +65,7 @@ gcode:
     # 移动打印头到热床中心（适配多数CoreXY机型）
     G0 X{printer.toolhead.axis_maximum.x / 2} Y{printer.toolhead.axis_maximum.y / 2} F6000 
     
-    SET_KINEMATIC_POSITION X={printer.toolhead.axis_maximum.x / 2} Y={printer.toolhead.axis_maximum.y / 2} Z={printer.toolhead.axis_maximum.z}
+    SET_KINEMATIC_POSITION X={printer.toolhead.axis_maximum.x / 2} Y={printer.toolhead.axis_maximum.y / 2} Z={printer.toolhead.axis_maximum.z-10}
 
     # 执行校准流程 
     LDC_CALIBRATE_DRIVE_CURRENT CHIP=fly_eddy_probe 
