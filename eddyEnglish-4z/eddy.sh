@@ -29,7 +29,7 @@ i2c_mcu: SHT36
 i2c_bus: i2c1e
 x_offset: 0 # Remember to set x offset
 y_offset: 0 # Remember to set y offset 
-speed:40
+speed:10
 lift_speed: 15.0
 EOF
 )
