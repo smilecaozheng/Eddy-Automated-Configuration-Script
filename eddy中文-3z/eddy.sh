@@ -101,8 +101,6 @@ description: 温度补偿校准流程
 gcode:
   {% set bed_temp = params.BED_TEMP|default(90)|int %}
   {% set nozzle_temp = params.NOZZLE_TEMP|default(250)|int %}
-  {% set min_temp = params.MIN_TEMP|default(40)|int %}
-  {% set max_temp = params.MAX_TEMP|default(70)|int %}
   {% set temperature_range_value = params.TEMPERATURE_RANGE_VALUE|default(3)|int %}
   {% set desired_temperature = params.DESIRED_TEMPERATURE|default(80)|int %}
   {% set Temperature_Timeout_Duration = params.TEMPERATURE_TIMEOUT_DURATION|default(6500000000)|int %}
@@ -126,8 +124,8 @@ gcode:
     TEMPERATURE_PROBE_CALIBRATE PROBE=fly_eddy_probe TARGET={desired_temperature} STEP={temperature_range_value}
     # 第五步：设置打印温度（根据实际需求修改）
     STATUS_MESSAGE="设置工作温度..."
-    SET_HEATER_TEMPERATURE HEATER={nozzle_temp} TARGET={max_temp}
-    SET_HEATER_TEMPERATURE HEATER={bed_temp} TARGET={max_temp}
+    SET_HEATER_TEMPERATURE HEATER=heater_bed TARGET={bed_temp}
+    SET_HEATER_TEMPERATURE HEATER=extruder TARGET={nozzle_temp}
     # 完成提示
     STATUS_MESSAGE="温度补偿流程完成！"
     description: G-Code macro

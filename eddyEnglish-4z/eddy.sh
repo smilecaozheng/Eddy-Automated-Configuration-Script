@@ -101,8 +101,6 @@ description: Temperature Compensation Calibration Process
 gcode:
   {% set bed_temp = params.BED_TEMP|default(90)|int %}
   {% set nozzle_temp = params.NOZZLE_TEMP|default(250)|int %}
-  {% set min_temp = params.MIN_TEMP|default(40)|int %}
-  {% set max_temp = params.MAX_TEMP|default(70)|int %}
   {% set temperature_range_value = params.TEMPERATURE_RANGE_VALUE|default(3)|int %}
   {% set desired_temperature = params.DESIRED_TEMPERATURE|default(80)|int %}
   {% set Temperature_Timeout_Duration = params.TEMPERATURE_TIMEOUT_DURATION|default(6500000000)|int %}
@@ -126,8 +124,8 @@ gcode:
     TEMPERATURE_PROBE_CALIBRATE PROBE=fly_eddy_probe TARGET={desired_temperature} STEP={temperature_range_value}
     # Step 5: Set printing temperatures (modify as needed)
     STATUS_MESSAGE="Setting working temperatures..."
-    SET_HEATER_TEMPERATURE HEATER=nozzle TARGET={max_temp}
-    SET_HEATER_TEMPERATURE HEATER=bed TARGET={max_temp}
+    SET_HEATER_TEMPERATURE HEATER=heater_bed TARGET={bed_temp}
+    SET_HEATER_TEMPERATURE HEATER=extruder TARGET={nozzle_temp}
     # Completion message
     STATUS_MESSAGE="Temperature compensation process completed!"
     description: G-Code macro
