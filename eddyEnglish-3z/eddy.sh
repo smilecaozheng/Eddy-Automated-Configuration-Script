@@ -98,43 +98,38 @@ GCODE_MACRO_TEMP_COMPENSATION=$(cat <<EOF
 [gcode_macro TEMP_COMPENSATION]
 description: Temperature Compensation Calibration Process
 gcode:
-    # Safety Check: Ensure all axes are not locked
+  {% set bed_temp = params.BED_TEMP|default(90)|int %}
+  {% set nozzle_temp = params.NOZZLE_TEMP|default(250)|int %}
+  {% set min_temp = params.MIN_TEMP|default(40)|int %}
+  {% set max_temp = params.MAX_TEMP|default(70)|int %}
+  {% set temperature_range_value = params.TEMPERATURE_RANGE_VALUE|default(3)|int %}
+  {% set desired_temperature = params.DESIRED_TEMPERATURE|default(80)|int %}
+  {% set Temperature_Timeout_Duration = params.TEMPERATURE_TIMEOUT_DURATION|default(6500000000)|int %}
+    # Safety check: Ensure all axes are unlocked
     {% if printer.pause_resume.is_paused %}
-        { action_raise_error("Error: Printer is paused, please resume printing") }
+        { action_raise_error("Error: Printer is paused. Please resume first.") }
     {% endif %}
-
     # Step 1: Home all axes
     STATUS_MESSAGE="Homing all axes..."
     G28
-    STATUS_MESSAGE="Homing Complete"
-
-    # Step 2: Automatically Detect Leveling Module
-    {% if "z_tilt" in printer.config_sections %}
-        STATUS_MESSAGE="Z_TILT Detected, Performing Leveling..."
-        Z_TILT_ADJUST
-        G28
-    {% elif "quad_gantry_level" in printer.config_sections %}
-        STATUS_MESSAGE="QUAD_GANTRY_LEVEL Detected, Performing Leveling..."
-        QUAD_GANTRY_LEVEL
-        G28
-    {% endif %}
-
-    # Step 3: Safely Raise Z Axis
-    STATUS_MESSAGE="Raising Z Axis..."
+    STATUS_MESSAGE="Homing completed"
+    # Step 2: Auto-leveling
+    Z_TILT_ADJUST
+    # Step 3: Safely raise the Z-axis
+    STATUS_MESSAGE="Raising Z-axis..."
     G90
-    G0 Z5 F2000  # Raise slowly to prevent collision
-
-    # Step 4: Set Timeout and Temperature Calibration
-    SET_IDLE_TIMEOUT TIMEOUT=65000
-    STATUS_MESSAGE="Starting Temperature Probe Calibration..."
-    TEMPERATURE_PROBE_CALIBRATE PROBE=fly_eddy_probe TARGET=80 STEP=4
-
-    # Step 5: Set Working Temperature (Modify as needed)
-    STATUS_MESSAGE="Setting Working Temperature..."
-    SET_HEATER_TEMPERATURE HEATER=heater_bed TARGET=120
-
-    # Completion Notification
-    STATUS_MESSAGE="Temperature Compensation Process Complete!"
+    G0 Z5 F2000  # Raise slowly to prevent collisions
+    # Step 4: Set timeout and temperature calibration
+    SET_IDLE_TIMEOUT TIMEOUT={Temperature_Timeout_Duration}
+    STATUS_MESSAGE="Starting temperature probe calibration..."
+    TEMPERATURE_PROBE_CALIBRATE PROBE=fly_eddy_probe TARGET={desired_temperature} STEP={temperature_range_value}
+    # Step 5: Set printing temperatures (modify as needed)
+    STATUS_MESSAGE="Setting working temperatures..."
+    SET_HEATER_TEMPERATURE HEATER=nozzle TARGET={max_temp}
+    SET_HEATER_TEMPERATURE HEATER=bed TARGET={max_temp}
+    # Completion message
+    STATUS_MESSAGE="Temperature compensation process completed!"
+    description: G-Code macro
 EOF
 )
 
