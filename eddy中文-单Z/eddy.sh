@@ -97,43 +97,36 @@ GCODE_MACRO_TEMP_COMPENSATION=$(cat <<EOF
 [gcode_macro TEMP_COMPENSATION]
 description: 温度补偿校准流程
 gcode:
+  {% set bed_temp = params.BED_TEMP|default(90)|int %}
+  {% set nozzle_temp = params.NOZZLE_TEMP|default(250)|int %}
+  {% set min_temp = params.MIN_TEMP|default(40)|int %}
+  {% set max_temp = params.MAX_TEMP|default(70)|int %}
+  {% set temperature_range_value = params.TEMPERATURE_RANGE_VALUE|default(3)|int %}
+  {% set desired_temperature = params.DESIRED_TEMPERATURE|default(80)|int %}
+  {% set Temperature_Timeout_Duration = params.TEMPERATURE_TIMEOUT_DURATION|default(6500000000)|int %}
     # 安全检查：确保所有轴未锁定
     {% if printer.pause_resume.is_paused %}
-        { action_raise_error("错误：打印机处于暂停状态，请先恢复打印") }
+        { action_raise_error("错误：打印机处于暂停状态，请先恢复使能") }
     {% endif %}
-
     # 第一步：归位所有轴
     STATUS_MESSAGE="正在归位所有轴..."
     G28
     STATUS_MESSAGE="归位完成"
-
-    # 第二步：自动检测调平模块
-    {% if "z_tilt" in printer.config_sections %}
-        STATUS_MESSAGE="检测到Z_TILT，正在执行调平..."
-        Z_TILT_ADJUST
-        G28
-    {% elif "quad_gantry_level" in printer.config_sections %}
-        STATUS_MESSAGE="检测到QUAD_GANTRY_LEVEL，正在执行调平..."
-        QUAD_GANTRY_LEVEL
-        G28
-    {% endif %}
-
     # 第三步：Z轴安全抬升
     STATUS_MESSAGE="Z轴抬升中..."
     G90
     G0 Z5 F2000  # 以较慢速度抬升防止碰撞
-
     # 第四步：设置超时和温度校准
-    SET_IDLE_TIMEOUT TIMEOUT=65000
+    SET_IDLE_TIMEOUT TIMEOUT={Temperature_Timeout_Duration}
     STATUS_MESSAGE="开始温度探头校准..."
-    TEMPERATURE_PROBE_CALIBRATE PROBE=fly_eddy_probe TARGET=80 STEP=4
-
+    TEMPERATURE_PROBE_CALIBRATE PROBE=fly_eddy_probe TARGET={desired_temperature} STEP={temperature_range_value}
     # 第五步：设置打印温度（根据实际需求修改）
     STATUS_MESSAGE="设置工作温度..."
-    SET_HEATER_TEMPERATURE HEATER=heater_bed TARGET=120
-
+    SET_HEATER_TEMPERATURE HEATER={nozzle_temp} TARGET={max_temp}
+    SET_HEATER_TEMPERATURE HEATER={bed_temp} TARGET={max_temp}
     # 完成提示
     STATUS_MESSAGE="温度补偿流程完成！"
+    description: G-Code macro
 EOF
 )
 
