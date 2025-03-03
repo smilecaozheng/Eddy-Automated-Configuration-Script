@@ -109,7 +109,7 @@ case "$choice" in
       # 使用 sed 命令进行修改
       sed -i '4s/i2c_mcu:.*/i2c_mcu: SB2040/' "$CONFIG_FILE" &&
       sed -i '5s/i2c_bus:.*/i2c_bus: i2c1b/' "$CONFIG_FILE"
-      sed -i '13s/sensor_pin:.*/sensor_pin:SB2040:gpio28/' "$CONFIG_FILE"
+      sed -i '14s/sensor_pin:.*/sensor_pin:SB2040:gpio28/' "$CONFIG_FILE"
       
       # 检查 sed 命令是否成功
       if [ $? -eq 0 ]; then
@@ -174,7 +174,7 @@ in_block && expect_next == "probe" {
 }
  
 in_block && expect_next == "z_offset" {
-    if (/^z_offset:[[:space:]]*2\.0/) {
+    if (/^z_offset:[[:space:]]*0\.5/) {
         block_buffer = block_buffer $0 "\n"
         found = 1  # 标记已找到有效配置 
         printf "%s", block_buffer 
@@ -192,7 +192,7 @@ in_block && expect_next == "z_offset" {
     next 
 }
 skip && /^\[probe_eddy_current fly_eddy_probe\]/ { next }
-skip && /^z_offset:[[:space:]]*2\.0/ { skip = 0; next }
+skip && /^z_offset:[[:space:]]*0\.5/ { skip = 0; next }
 skip { skip = 0; print $0 }
  
 # 常规输出 
