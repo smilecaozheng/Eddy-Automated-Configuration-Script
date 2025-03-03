@@ -31,6 +31,7 @@ x_offset: 0 #记得设置x偏移
 y_offset: 0 #记得设置y偏移 
 speed:10
 lift_speed: 15.0
+i2c_speed: 4000000
 EOF
 )
 
