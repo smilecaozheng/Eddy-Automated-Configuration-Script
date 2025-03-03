@@ -16,7 +16,7 @@ FILE="$HOME/klipper/klippy/extras/ldc1612.py"
 
 # 定义要添加到 printer.cfg 的内容
 PRINTER_CFG_CONTENT="[include eddypz.cfg]"
-PRINTER_CFG_CONTEN="[probe_eddy_current fly_eddy_probe]\nz_offset: 2.0"
+PRINTER_CFG_CONTEN="[probe_eddy_current fly_eddy_probe]\nz_offset: 0.5"
 
 # 定义要添加到 eddypz.cfg 的内容，分开处理
 PROBE_EDDY_CURRENT=$(cat <<EOF
@@ -29,6 +29,7 @@ x_offset: 0 #记得设置x偏移
 y_offset: 0 #记得设置y偏移 
 speed:10
 lift_speed: 15.0
+i2c_speed: 4000000
 EOF
 )
 
