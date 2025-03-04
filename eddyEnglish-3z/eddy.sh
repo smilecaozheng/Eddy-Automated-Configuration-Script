@@ -17,7 +17,7 @@ FILE="$HOME/klipper/klippy/extras/ldc1612.py"
 
 # Define content to add to printer.cfg
 PRINTER_CFG_CONTENT="[include eddypz.cfg]"
-PRINTER_CFG_CONTEN="[probe_eddy_current fly_eddy_probe]\nz_offset: 0.5"
+PRINTER_CFG_CONTEN="[probe_eddy_current fly_eddy_probe]\nz_offset: 1.0"
 
 # Define content to add to eddypz.cfg, handled separately
 PROBE_EDDY_CURRENT=$(cat <<EOF
