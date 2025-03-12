@@ -65,7 +65,7 @@ gcode:
     # Move print head to center of heat bed (suitable for most CoreXY models)
     G0 X{printer.toolhead.axis_maximum.x / 2} Y{printer.toolhead.axis_maximum.y / 2} F6000 
     
-    SET_KINEMATIC_POSITION X={printer.toolhead.axis_maximum.x / 2} Y={printer.toolhead.axis_maximum.y / 2} Z={printer.toolhead.axis_maximum.z-10}
+    SET_KINEMATIC_POSITION X={printer.toolhead.axis_maximum.x / 2} Y={printer.toolhead.axis_maximum.y / 2} Z=4
 
     # Execute Calibration Process 
     LDC_CALIBRATE_DRIVE_CURRENT CHIP=fly_eddy_probe 
@@ -150,6 +150,20 @@ gcode:
 EOF
 )
 
+GCODE_MACRO_CALIBRATE_DD=$(cat <<EOF
+[gcode_macro CALIBRATE_DD]
+description: Mobile axis macro
+gcode:
+    # Reset X/Y Axis 
+    G28 X Y 
+
+    # Move the print head to the center of the heated bed (compatible with most CoreXY models)
+    G0 X{printer.toolhead.axis_maximum.x / 2} Y{printer.toolhead.axis_maximum.y / 2} F6000 
+    SET_KINEMATIC_POSITION Z={printer.toolhead.axis_maximum.z-10}
+EOF
+)
+
+
 # ================================
 # Function 1: Check if eddypz.cfg exists, delete it if it does, then recreate it with configuration content
 # ================================
@@ -205,6 +219,7 @@ add_config "gcode_macro_TEMP_COMPENSATION" "$GCODE_MACRO_TEMP_COMPENSATION"
 add_config "gcode_macro_CANCEL_TEMP_COMPENSATION" "$GCODE_MACRO_CANCEL_TEMP_COMPENSATION"
 add_config "gcode_macro_BED_MESH_CALIBRATE" "$GCODE_MACRO_BED_MESH_CALIBRATE"
 add_config "force_move" "$FORCE_MOVE"
+add_config "gcode_macro_CALIBRATE_DD" "$GCODE_MACRO_CALIBRATE_DD"
 echo "eddypz.cfg file has been updated."
 
 # ================================
