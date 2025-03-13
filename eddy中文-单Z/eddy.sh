@@ -58,12 +58,6 @@ gcode:
         {action_raise_error("校准前请先恢复打印状态")}
     {% endif %}
 
-    # 归零X/Y轴 
-    G28 X Y 
-
-    # 移动打印头到热床中心（适配多数CoreXY机型）
-    G0 X{printer.toolhead.axis_maximum.x / 2} Y{printer.toolhead.axis_maximum.y / 2} F6000 
-    
     SET_KINEMATIC_POSITION X={printer.toolhead.axis_maximum.x / 2} Y={printer.toolhead.axis_maximum.y / 2} Z=4
 
     # 执行校准流程 

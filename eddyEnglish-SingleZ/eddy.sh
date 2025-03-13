@@ -59,12 +59,6 @@ gcode:
         {action_raise_error("Please resume printing before calibration")}
     {% endif %}
 
-    # Home X/Y axes 
-    G28 X Y 
-
-    # Move print head to center of heat bed (suitable for most CoreXY models)
-    G0 X{printer.toolhead.axis_maximum.x / 2} Y{printer.toolhead.axis_maximum.y / 2} F6000 
-    
     SET_KINEMATIC_POSITION X={printer.toolhead.axis_maximum.x / 2} Y={printer.toolhead.axis_maximum.y / 2} Z=4
 
     # Execute Calibration Process 
