@@ -60,7 +60,7 @@ gcode:
         {action_raise_error("Please resume printing before calibration")}
     {% endif %}
 
-    SET_KINEMATIC_POSITION X={printer.toolhead.axis_maximum.x / 2} Y={printer.toolhead.axis_maximum.y / 2} Z=4
+    SET_KINEMATIC_POSITION X={printer.toolhead.axis_maximum.x / 2} Y={printer.toolhead.axis_maximum.y / 2} Z=0
 
     # Execute calibration process 
     LDC_CALIBRATE_DRIVE_CURRENT CHIP=fly_eddy_probe 
@@ -78,7 +78,9 @@ gcode:
     {% else %}
         M117 Error: Unable to retrieve DRIVE_CURRENT_FEEDBACK value.
     {% endif %}
-
+    
+    G1 Z2 F300
+    
     # Prompt user to perform manual Z offset calibration
     M117 Please perform manual Z offset calibration.
 

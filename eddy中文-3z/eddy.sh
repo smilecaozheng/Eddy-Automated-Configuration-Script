@@ -60,7 +60,7 @@ gcode:
         {action_raise_error("校准前请先恢复打印状态")}
     {% endif %}
     
-    SET_KINEMATIC_POSITION X={printer.toolhead.axis_maximum.x / 2} Y={printer.toolhead.axis_maximum.y / 2} Z=4
+    SET_KINEMATIC_POSITION X={printer.toolhead.axis_maximum.x / 2} Y={printer.toolhead.axis_maximum.y / 2} Z=0
 
     # 执行校准流程 
     LDC_CALIBRATE_DRIVE_CURRENT CHIP=fly_eddy_probe 
@@ -78,7 +78,9 @@ gcode:
     {% else %}
         M117 错误：无法获取 DRIVE_CURRENT_FEEDBACK 值。
     {% endif %}
-
+    
+    G1 Z2 F300
+    
     # 提示用户执行手动Z偏移校准
     M117 请执行手动Z偏移校准。
 
