@@ -160,6 +160,53 @@ gcode:
 EOF
 )
 
+SAVE_VARIABLES=$(cat <<EOF
+[save_variables]
+filename: ~/printer_data/config/variables.cfg
+EOF
+)
+
+DELAYED_GCODE_RESTORE_PROBE_OFFSET=$(cat <<EOF
+[delayed_gcode RESTORE_PROBE_OFFSET]
+initial_duration: 1.
+gcode:
+  {% set svv = printer.save_variables.variables %}
+  {% if not printer["gcode_macro SET_GCODE_OFFSET"].restored %}
+    SET_GCODE_VARIABLE MACRO=SET_GCODE_OFFSET VARIABLE=runtime_offset VALUE={ svv.nvm_offset|default(0) }
+    SET_GCODE_VARIABLE MACRO=SET_GCODE_OFFSET VARIABLE=restored VALUE=True
+  {% endif %}
+EOF
+)
+
+GCODE_MACRO_G28=$(cat <<EOF
+[gcode_macro G28]
+rename_existing: G28.1
+gcode:
+  G28.1 {rawparams}
+  {% if not rawparams or (rawparams and 'Z' in rawparams) %}
+    PROBE
+    SET_Z_FROM_PROBE
+  {% endif %}
+EOF
+)
+
+GCODE_MACRO_SET_Z_FROM_PROBE=$(cat <<EOF
+[gcode_macro SET_Z_FROM_PROBE]
+gcode:
+    {% set cf = printer.configfile.settings %}
+    SET_GCODE_OFFSET_ORIG Z={printer.probe.last_z_result - cf['probe_eddy_current fly_eddy_probe'].z_offset + printer["gcode_macro SET_GCODE_OFFSET"].runtime_offset}
+    G90
+    G1 Z{cf.safe_z_home.z_hop}
+EOF
+)
+
+GCODE_MACRO_SET_Z_FROM_PROBE=$(cat <<EOF
+[gcode_macro Z_OFFSET_APPLY_PROBE]
+rename_existing: Z_OFFSET_APPLY_PROBE_ORIG
+gcode:
+  SAVE_VARIABLE VARIABLE=nvm_offset VALUE={ printer["gcode_macro SET_GCODE_OFFSET"].runtime_offset }
+EOF
+)
 
 # ================================
 # Function 1: Check if eddypz.cfg exists, delete it if it does, then recreate it with configuration content
@@ -217,6 +264,11 @@ add_config "gcode_macro_CANCEL_TEMP_COMPENSATION" "$GCODE_MACRO_CANCEL_TEMP_COMP
 add_config "gcode_macro_BED_MESH_CALIBRATE" "$GCODE_MACRO_BED_MESH_CALIBRATE"
 add_config "force_move" "$FORCE_MOVE"
 add_config "gcode_macro_CALIBRATE_DD" "$GCODE_MACRO_CALIBRATE_DD"
+add_config "save_variables" "$SAVE_VARIABLES"
+add_config "delayed_gcode RESTORE_PROBE_OFFSET" "$DELAYED_GCODE_RESTORE_PROBE_OFFSET"
+add_config "gcode_macro_G28" "$GCODE_MACRO_G28"
+add_config "gcode_macro_SET_Z_FROM_PROBE" "$GCODE_MACRO_SET_Z_FROM_PROBE"
+add_config "gcode_macro_Z_OFFSET_APPLY_PROBE" "$GCODE_MACRO_SET_Z_FROM_PROBE"
 echo "eddypz.cfg file has been updated."
 
 # ================================
