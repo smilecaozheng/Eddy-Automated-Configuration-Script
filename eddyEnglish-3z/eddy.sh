@@ -23,6 +23,7 @@ PRINTER_CFG_CONTEN="[probe_eddy_current fly_eddy_probe]\nz_offset: 1.0"
 PROBE_EDDY_CURRENT=$(cat <<EOF
 [probe_eddy_current fly_eddy_probe]
 sensor_type: ldc1612
+#frequency: 40000000 # Frequency set to 40MHz
 i2c_address: 43
 i2c_mcu: SHT36
 i2c_bus: i2c1e
@@ -313,12 +314,9 @@ cp "$FILE" "${FILE}.bak" || error_exit "Failed to backup file '$FILE'."
 # Perform replacement operation
 sed -i 's/LDC1612_FREQ = 12000000/LDC1612_FREQ = 40000000/g' "$FILE" || error_exit "Replacement operation failed."
 
-# Verify if replacement was successful
+# Check if the replacement was successful
 if grep -q "^LDC1612_FREQ = 40000000$" "$FILE"; then
-    echo "Replacement successful: Found 'LDC1612_FREQ = 40000000'."
-    exit 0
+    echo "Replacement successful: 'LDC1612_FREQ = 40000000' found."
 else
-    error_exit "Replacement failed: 'LDC1612_FREQ = 40000000' not found."
+    echo "Warning: 'LDC1612_FREQ = 40000000' not found." >&2
 fi
-
-exit 0

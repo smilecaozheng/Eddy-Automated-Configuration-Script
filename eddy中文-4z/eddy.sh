@@ -21,6 +21,7 @@ PRINTER_CFG_CONTEN="[probe_eddy_current fly_eddy_probe]\nz_offset: 1.0"
 PROBE_EDDY_CURRENT=$(cat <<EOF
 [probe_eddy_current fly_eddy_probe]
 sensor_type: ldc1612
+#frequency: 40000000 # 频率设置为 40MHz
 i2c_address: 43
 i2c_mcu: SHT36
 i2c_bus: i2c1e
@@ -332,8 +333,6 @@ sed -i 's/LDC1612_FREQ = 12000000/LDC1612_FREQ = 40000000/g' "$FILE" || error_ex
 # 检查替换是否成功
 if grep -q "^LDC1612_FREQ = 40000000$" "$FILE"; then
     echo "替换成功：已找到 'LDC1612_FREQ = 40000000'。"
-    exit 0
 else
-    error_exit "替换失败：未找到 'LDC1612_FREQ = 40000000'。"
+    echo "警告：未找到 'LDC1612_FREQ = 40000000'。" >&2
 fi
-exit 0
