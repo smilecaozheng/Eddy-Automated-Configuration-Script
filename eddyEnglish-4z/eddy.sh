@@ -51,25 +51,26 @@ EOF
 
 GCODE_MACRO_CALIBRATE_EDDY=$(cat <<EOF
 [gcode_macro CALIBRATE_EDDY]
-description: Execute Eddy Current Sensor Calibration and Subsequent Leveling Process 
+description: Execute Eddy Current Sensor Calibration and Subsequent Leveling Process
 gcode:
     # ========== Start Calibrating Eddy Current Sensor ==========
-    M117 Start calibrating Eddy Current Sensor...
+    M117 Starting Eddy Current Sensor Calibration...
 
     # Safety Check: Verify if the printer is in pause state
     {% if printer.pause_resume.is_paused|lower == 'true' %}
         {action_raise_error("Please resume printing before calibration")}
     {% endif %}
+    G28 X Y
+    G0 X{printer.toolhead.axis_maximum.x / 2} Y{printer.toolhead.axis_maximum.y / 2} F6000
+    SET_KINEMATIC_POSITION Z=0
 
-    SET_KINEMATIC_POSITION X={printer.toolhead.axis_maximum.x / 2} Y={printer.toolhead.axis_maximum.y / 2} Z=0
-
-    # Execute calibration process 
+    # Execute Calibration Process 
     LDC_CALIBRATE_DRIVE_CURRENT CHIP=fly_eddy_probe 
 
     # Attempt to output DRIVE_CURRENT_FEEDBACK value
     M117 Eddy Current Calibration Complete, Feedback Value: {DRIVE_CURRENT_FEEDBACK}
 
-    # Check if feedback value is within normal range
+    # Check if Feedback Value is within Normal Range
     {% if DRIVE_CURRENT_FEEDBACK is defined %}
         {% if DRIVE_CURRENT_FEEDBACK < 10 or DRIVE_CURRENT_FEEDBACK > 20 %}
             M117 Warning: Eddy Current Feedback Value Abnormal ({DRIVE_CURRENT_FEEDBACK}). Please check connections.
@@ -80,16 +81,16 @@ gcode:
         M117 Error: Unable to retrieve DRIVE_CURRENT_FEEDBACK value.
     {% endif %}
     
-    G1 Z2 F300
+    G1 Z15 F300
     
-    # Prompt user to perform manual Z offset calibration
-    M117 Please perform manual Z offset calibration.
-
-    # Execute Effective Distance Calibration for Eddy Current
+    # Prompt user to perform manual Z Offset Calibration
+    M117 Please perform manual Z Offset Calibration.
+    SET_KINEMATIC_POSITION Z={printer.toolhead.axis_maximum.z-10}
+    # Execute Eddy Effective Distance Calibration
     PROBE_EDDY_CURRENT_CALIBRATE CHIP=fly_eddy_probe 
 
-    # Indicate completion of calibration
-    M117 All calibration processes completed!
+    # Indicate Calibration Completion
+    M117 All Calibration Processes Completed!
 EOF
 )
 

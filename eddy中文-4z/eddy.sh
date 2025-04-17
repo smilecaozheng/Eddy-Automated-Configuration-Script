@@ -57,8 +57,9 @@ gcode:
     {% if printer.pause_resume.is_paused|lower == 'true' %}
         {action_raise_error("校准前请先恢复打印状态")}
     {% endif %}
-    
-    SET_KINEMATIC_POSITION X={printer.toolhead.axis_maximum.x / 2} Y={printer.toolhead.axis_maximum.y / 2} Z=0
+    G28 X Y 
+    G0 X{printer.toolhead.axis_maximum.x / 2} Y{printer.toolhead.axis_maximum.y / 2} F6000
+    SET_KINEMATIC_POSITION Z=0
 
     # 执行校准流程 
     LDC_CALIBRATE_DRIVE_CURRENT CHIP=fly_eddy_probe 
@@ -77,11 +78,11 @@ gcode:
         M117 错误：无法获取 DRIVE_CURRENT_FEEDBACK 值。
     {% endif %}
     
-    G1 Z2 F300
+    G1 Z15 F3000
     
     # 提示用户执行手动Z偏移校准
     M117 请执行手动Z偏移校准。
-
+    SET_KINEMATIC_POSITION Z={printer.toolhead.axis_maximum.z-10}
     # 执行Eddy有效距离校准
     PROBE_EDDY_CURRENT_CALIBRATE CHIP=fly_eddy_probe 
 
@@ -189,7 +190,7 @@ EOF
 
 GCODE_MACRO_CALIBRATE_DD=$(cat <<EOF
 [gcode_macro CALIBRATE_DD]
-description: 移动轴宏 
+description: 强制移动轴宏 
 gcode:
     # 归零X/Y轴 
     G28 X Y 
