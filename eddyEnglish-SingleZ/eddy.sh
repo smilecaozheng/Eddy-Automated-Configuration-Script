@@ -201,7 +201,7 @@ gcode:
 EOF
 )
 
-GCODE_MACRO_SET_Z_FROM_PROBE=$(cat <<EOF
+GCODE_MACRO_Z_OFFSET_APPLY_PROBE=$(cat <<EOF
 [gcode_macro Z_OFFSET_APPLY_PROBE]
 rename_existing: Z_OFFSET_APPLY_PROBE_ORIG
 gcode:
@@ -269,7 +269,7 @@ add_config "save_variables" "$SAVE_VARIABLES"
 add_config "delayed_gcode RESTORE_PROBE_OFFSET" "$DELAYED_GCODE_RESTORE_PROBE_OFFSET"
 add_config "gcode_macro_G28" "$GCODE_MACRO_G28"
 add_config "gcode_macro_SET_Z_FROM_PROBE" "$GCODE_MACRO_SET_Z_FROM_PROBE"
-add_config "gcode_macro_Z_OFFSET_APPLY_PROBE" "$GCODE_MACRO_SET_Z_FROM_PROBE"
+add_config "gcode_macro_Z_OFFSET_APPLY_PROBE" "$GCODE_MACRO_Z_OFFSET_APPLY_PROBE"
 echo "eddypz.cfg file has been updated."
 
 # ================================
