@@ -249,6 +249,31 @@ gcode:
 EOF
 )
 
+GCODE_MACRO_SET_GCODE_OFFSET=$(cat <<EOF
+[gcode_macro SET_GCODE_OFFSET]
+rename_existing: SET_GCODE_OFFSET_ORIG
+variable_restored: False  # Mark whether the var has been restored from NVM
+variable_runtime_offset: 0
+gcode:
+  {% if params.Z_ADJUST %}
+    SET_GCODE_VARIABLE MACRO=SET_GCODE_OFFSET VARIABLE=runtime_offset VALUE={ printer["gcode_macro SET_GCODE_OFFSET"].runtime_offset + params.Z_ADJUST|float }
+  {% endif %}
+  {% if params.Z %} 
+    {% set paramList = rawparams.split() %}
+    {% for i in range(paramList|length) %}
+      {% if paramList[i]=="Z=0" %}
+        {% set temp=paramList.pop(i) %}
+        {% set temp="Z_ADJUST=" + (-printer["gcode_macro SET_GCODE_OFFSET"].runtime_offset)|string %}
+        {% if paramList.append(temp) %}{% endif %}
+      {% endif %}
+    {% endfor %}
+    {% set rawparams=paramList|join(' ') %}
+    SET_GCODE_VARIABLE MACRO=SET_GCODE_OFFSET VARIABLE=runtime_offset VALUE=0
+  {% endif %}
+  SET_GCODE_OFFSET_ORIG { rawparams }
+EOF
+)
+
 # ================================
 # 功能 1: 检查并删除 eddypz.cfg（如果存在），然后重新创建并添加配置内容
 # ================================
@@ -311,6 +336,7 @@ add_config "delayed_gcode RESTORE_PROBE_OFFSET" "$DELAYED_GCODE_RESTORE_PROBE_OF
 add_config "gcode_macro_G28" "$GCODE_MACRO_G28"
 add_config "gcode_macro_SET_Z_FROM_PROBE" "$GCODE_MACRO_SET_Z_FROM_PROBE"
 add_config "gcode_macro_Z_OFFSET_APPLY_PROBE" "$GCODE_MACRO_Z_OFFSET_APPLY_PROBE"
+add_config "gcode_macro_SET_GCODE_OFFSET" "$GCODE_MACRO_SET_GCODE_OFFSET"
 echo "eddypz.cfg 文件已更新。"
 
 # ================================
