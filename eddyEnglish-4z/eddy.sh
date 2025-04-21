@@ -60,6 +60,7 @@ gcode:
     {% if printer.pause_resume.is_paused|lower == 'true' %}
         {action_raise_error("Please resume printing before calibration")}
     {% endif %}
+    M84
     G28 X Y
     G0 X{printer.toolhead.axis_maximum.x / 2} Y{printer.toolhead.axis_maximum.y / 2} F6000
     SET_KINEMATIC_POSITION Z=0
