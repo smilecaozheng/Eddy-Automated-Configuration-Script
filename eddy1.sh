@@ -107,9 +107,9 @@ case "$choice" in
       echo "正在修改配置文件.../Modifying the configuration file..."
       
       # 使用 sed 命令进行修改
-      sed -i '4s/i2c_mcu:.*/i2c_mcu: SB2040/' "$CONFIG_FILE" &&
-      sed -i '5s/i2c_bus:.*/i2c_bus: i2c1b/' "$CONFIG_FILE"
-      sed -i '14s/sensor_pin:.*/sensor_pin:SB2040:gpio28/' "$CONFIG_FILE"
+      sed -i '/^i2c_mcu:/s/.*/i2c_mcu: SB2040/' "$CONFIG_FILE" &&
+      sed -i '/^i2c_bus:/s/.*/i2c_bus: i2c1b/' "$CONFIG_FILE"
+      sed -i '/^sensor_pin:/s/.*/sensor_pin:SB2040:gpio28/' "$CONFIG_FILE"
       
       # 检查 sed 命令是否成功
       if [ $? -eq 0 ]; then
