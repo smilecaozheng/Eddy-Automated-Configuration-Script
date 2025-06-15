@@ -162,7 +162,7 @@ rename_existing: _Z_TILT_ADJUST
 gcode:
     # ========== LED灯效  ==========
     _status_leveling
-    
+
     # ========== 状态保存 ==========
     SAVE_GCODE_STATE NAME=STATE_Z_TILT
     
@@ -182,8 +182,9 @@ gcode:
 
     # ========== 后处理 ==========
     G90                                 # 强制绝对坐标模式 
-    G0 Z10 F6000                        # 抬升Z轴到安全高度 
-    M117 z_tilt Completed                  # 显示完成状态 
+    G0 Z10 F6000                        # 抬升Z轴到安全高度
+    RESPOND TYPE=command MSG=="z_tilt Completed" 
+    M117 z_tilt Completed               # 显示完成状态 
     G28                                 # 回到原点
     # ========== 状态恢复 ==========
     RESTORE_GCODE_STATE NAME=STATE_Z_TILT
