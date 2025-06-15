@@ -26,8 +26,8 @@ PROBE_EDDY_CURRENT=$(cat <<EOF
 sensor_type: ldc1612
 #frequency: 40000000 # 频率设置为 40MHz
 i2c_address: 43
-i2c_mcu: SHT36
-i2c_bus: i2c1e
+i2c_mcu: sb2040
+i2c_bus: i2c1b
 x_offset: 0 #记得设置x偏移
 y_offset: 0 #记得设置y偏移 
 speed:10
@@ -38,8 +38,8 @@ EOF
 
 TEMPERATURE_PROBE=$(cat <<EOF
 [temperature_probe fly_eddy_probe]
-sensor_type: Generic 3950
-sensor_pin:SHT36:gpio28
+sensor_type: NTC 100K MGB18-104F39050L32
+sensor_pin: sb2040:gpio28
 EOF
 )
 
@@ -53,7 +53,11 @@ GCODE_MACRO_CALIBRATE_EDDY=$(cat <<EOF
 [gcode_macro CALIBRATE_EDDY]
 description: 执行Eddy电流传感器校准及后续调平流程 
 gcode:
+    # ========== LED灯效  ==========
+    _status_calibrating_z
+
     # ========== 开始校准 Eddy 电流传感器 ==========
+    RESPOND TYPE=command MSG="开始校准 Eddy 电流传感器..."
     M117 开始校准 Eddy 电流传感器...
 
     # 安全检测：检查打印机是否处于暂停状态
@@ -69,28 +73,34 @@ gcode:
     LDC_CALIBRATE_DRIVE_CURRENT CHIP=fly_eddy_probe 
 
     # 尝试输出 DRIVE_CURRENT_FEEDBACK 的值
+    RESPOND TYPE=command MSG="Eddy 电流校准完成，反馈值: {DRIVE_CURRENT_FEEDBACK}"
     M117 Eddy 电流校准完成，反馈值: {DRIVE_CURRENT_FEEDBACK}
 
     # 检查反馈值是否在正常范围内
     {% if DRIVE_CURRENT_FEEDBACK is defined %}
         {% if DRIVE_CURRENT_FEEDBACK < 10 or DRIVE_CURRENT_FEEDBACK > 20 %}
+            RESPOND TYPE=command MSG="警告：Eddy 电流反馈值异常（{DRIVE_CURRENT_FEEDBACK}）。请检查连接。"
             M117 警告：Eddy 电流反馈值异常（{DRIVE_CURRENT_FEEDBACK}）。请检查连接。
         {% else %}
+            RESPOND TYPE=command MSG="Eddy 电流反馈值正常（{DRIVE_CURRENT_FEEDBACK}）。"
             M117 Eddy 电流反馈值正常（{DRIVE_CURRENT_FEEDBACK}）。
         {% endif %}
     {% else %}
+        RESPOND TYPE=command MSG="错误：无法获取 DRIVE_CURRENT_FEEDBACK 值。"
         M117 错误：无法获取 DRIVE_CURRENT_FEEDBACK 值。
     {% endif %}
     
     G1 Z15 F3000
     
     # 提示用户执行手动Z偏移校准
+    RESPOND TYPE=command MSG="请执行手动Z偏移校准。"
     M117 请执行手动Z偏移校准。
-    SET_KINEMATIC_POSITION Z={printer.toolhead.axis_maximum.z-10}
+    SET_KINEMATIC_POSITION Z=10
     # 执行Eddy有效距离校准
     PROBE_EDDY_CURRENT_CALIBRATE CHIP=fly_eddy_probe 
 
     # 提示校准完成
+    RESPOND TYPE=command MSG="已完成所有校准流程！"
     M117 已完成所有校准流程！
 EOF
 )
@@ -109,25 +119,25 @@ gcode:
         { action_raise_error("错误：打印机处于暂停状态，请先恢复使能") }
     {% endif %}
     # 第一步：归位所有轴
-    STATUS_MESSAGE="正在归位所有轴..."
+    RESPOND TYPE=command MSG="正在归位所有轴..."
     G28
-    STATUS_MESSAGE="归位完成"
+    RESPOND TYPE=command MSG=="归位完成"
     # 第二步：自动调平
     Z_TILT_ADJUST
     # 第三步：Z轴安全抬升
-    STATUS_MESSAGE="Z轴抬升中..."
+    RESPOND TYPE=command MSG=="Z轴抬升中..."
     G90
     G0 Z5 F2000  # 以较慢速度抬升防止碰撞
     # 第四步：设置超时和温度校准
     SET_IDLE_TIMEOUT TIMEOUT={Temperature_Timeout_Duration}
-    STATUS_MESSAGE="开始温度探头校准..."
+    RESPOND TYPE=command MSG=="开始温度探头校准..."
     TEMPERATURE_PROBE_CALIBRATE PROBE=fly_eddy_probe TARGET={desired_temperature} STEP={temperature_range_value}
     # 第五步：设置打印温度（根据实际需求修改）
-    STATUS_MESSAGE="设置工作温度..."
+    RESPOND TYPE=command MSG=="设置工作温度..."
     SET_HEATER_TEMPERATURE HEATER=heater_bed TARGET={bed_temp}
     SET_HEATER_TEMPERATURE HEATER=extruder TARGET={nozzle_temp}
     # 完成提示
-    STATUS_MESSAGE="温度补偿流程完成！"
+    RESPOND TYPE=command MSG=="温度补偿流程完成！"
     description: G-Code macro
 EOF
 )
@@ -136,8 +146,12 @@ GCODE_MACRO_BED_MESH_CALIBRATE=$(cat <<EOF
 [gcode_macro BED_MESH_CALIBRATE]
 rename_existing: _BED_MESH_CALIBRATE
 gcode: 
-       _BED_MESH_CALIBRATE horizontal_move_z=2 METHOD=rapid_scan {rawparams}
-       G28 X Y
+    # ========== LED灯效  ==========
+    _status_meshing
+
+    # ========== 扫床流程 ==========
+    _BED_MESH_CALIBRATE horizontal_move_z=2 METHOD=rapid_scan {rawparams}
+    G28 X Y
 EOF
 )
 
@@ -146,6 +160,9 @@ GCODE_MACRO_Z_TILT_ADJUST=$(cat <<EOF
 [gcode_macro Z_TILT_ADJUST]
 rename_existing: _Z_TILT_ADJUST
 gcode:
+    # ========== LED灯效  ==========
+    _status_leveling
+    
     # ========== 状态保存 ==========
     SAVE_GCODE_STATE NAME=STATE_Z_TILT
     
@@ -183,7 +200,7 @@ gcode:
 
     # 移动打印头到热床中心（适配多数CoreXY机型）
     G0 X{printer.toolhead.axis_maximum.x / 2} Y{printer.toolhead.axis_maximum.y / 2} F6000 
-    SET_KINEMATIC_POSITION Z={printer.toolhead.axis_maximum.z-10}
+    SET_KINEMATIC_POSITION Z=10
 EOF
 )
 
